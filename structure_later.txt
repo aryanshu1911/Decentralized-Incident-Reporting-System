@@ -1,0 +1,57 @@
+//FUTURE SCOPE
+
+Architecture
+-------------
+
+project-root/
+│
+├─ frontend/ (React + Web3)
+│   ├─ src/
+│   │    ├─ App.js                  <-- Main app
+│   │    ├─ components/
+│   │    │    ├─ ComplaintForm.js  <-- User submits complaint + image
+│   │    │    └─ ComplaintList.js  <-- View complaints / admin dashboard
+│   │    └─ utils/
+│   │         └─ api.js            <-- Calls backend API or blockchain
+│   └─ package.json
+│
+├─ backend/ (Node.js + Express + MongoDB Atlas) [Optional]
+│   ├─ server.js                     <-- Express setup, MongoDB connection
+│   ├─ .env
+│   ├─ models/
+│   │    └─ Complaint.js             <-- MongoDB schema
+│   └─ routes/
+│        └─ complaints.js            <-- REST API: CRUD + hash generation
+│
+├─ blockchain/ (Solidity / Hardhat)
+│   ├─ contracts/
+│   │    └─ ComplaintHash.sol        <-- storeHash, updateStatus, verifyHash
+│   └─ scripts/
+│        └─ deploy.js                <-- Deploy smart contract to Polygon Mumbai
+│
+└─ README.md
+
+================================================================================================
+
+Data Flow
+----------
+
+Frontend (React + Web3)
+ └─ ComplaintForm
+      └─ Upload image → IPFS/Pinata → get CID
+      └─ Generate SHA-256 hash of complaintId + description + location + imageCID
+      └─ Send hash & complaintId to Smart Contract
+      └─ Optional: Send complaint metadata to Backend (MongoDB) for fast querying
+
+Smart Contract (Polygon Mumbai)
+ └─ storeHash(hash, complaintId, reporterWallet)
+ └─ updateStatus(complaintId, status) [admin]
+ └─ verifyHash(complaintId) → confirms tamper-proof
+
+Backend (Node.js + MongoDB) [Optional]
+ └─ Stores complaint data (description, location, imageCID, hash, status)
+ └─ Provides REST API for frontend to fetch & display complaints
+
+IPFS / Pinata
+ └─ Stores uploaded images/videos
+ └─ Returns CID → stored on-chain & in backend

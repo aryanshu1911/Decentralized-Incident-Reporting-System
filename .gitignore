@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment variables (has your API keys & DB password!)
+.env
+
+# Build output
+frontend/build/
+
+# Temp upload files
+backend/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/

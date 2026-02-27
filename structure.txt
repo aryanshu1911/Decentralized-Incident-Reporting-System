@@ -1,0 +1,27 @@
+project-root/
+│
+├─ backend/                     # Node.js + Express backend
+│   ├─ server.js                # Express setup + DB connection
+│   ├─ .env                     # MongoDB credentials + port
+│   ├─ models/
+│   │    └─ Complaint.js        # Mongoose schema for complaints
+│   └─ routes/
+│        └─ complaints.js       # API endpoints: POST, GET, PUT
+│
+├─ frontend/                    # React frontend
+│   ├─ package.json
+│   ├─ src/
+│   │    ├─ App.js
+│   │    ├─ index.js
+│   │    ├─ components/
+│   │    │    ├─ ComplaintForm.js
+│   │    │    └─ ComplaintList.js
+│   │    └─ utils/
+│   │         └─ api.js         # API calls to backend
+│
+├─ blockchain/                  # Minimal Solidity contract (optional)
+│   ├─ contracts/
+│   │    └─ ComplaintHash.sol
+│   └─ scripts/
+│        └─ deploy.js
+└─ README.md
