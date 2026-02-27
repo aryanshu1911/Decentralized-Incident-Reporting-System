@@ -62,9 +62,9 @@ const ReportList = forwardRef((props, ref) => {
               </span>
             </div>
             <div className="report-card-body">
+              <p><strong>Category:</strong> {report.category}</p>
               <p><strong>Description:</strong> {report.description}</p>
               <p><strong>Location:</strong> {report.location}</p>
-              <p><strong>Category:</strong> {report.category}</p>
               {report.imageCID && (
                 <div className="report-image">
                   <img

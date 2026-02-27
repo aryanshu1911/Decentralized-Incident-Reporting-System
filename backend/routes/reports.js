@@ -24,7 +24,7 @@ const upload = multer({
 // POST: submit a report
 router.post('/', upload.single('file'), async (req, res) => {
   try {
-    const { description, location, category } = req.body;
+    const { category, description, location } = req.body;
     const file = req.file;
 
     if (!description || !location || !category || !file) {

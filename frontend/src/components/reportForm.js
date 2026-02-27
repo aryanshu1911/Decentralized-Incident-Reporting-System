@@ -65,6 +65,26 @@ export default function ReportForm({ onReportSubmitted }) {
 
       <form className="report-form" onSubmit={handleSubmit}>
         <div className="form-group">
+          <label htmlFor="category">Category</label>
+          <select
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Select a category...</option>
+            <option value="Theft">Theft</option>
+            <option value="Assault">Assault</option>
+            <option value="Vandalism">Vandalism</option>
+            <option value="Fraud">Fraud</option>
+            <option value="Harassment">Harassment</option>
+            <option value="Drug Activity">Drug Activity</option>
+            <option value="Traffic Violation">Traffic Violation</option>
+            <option value="Public Disturbance">Public Disturbance</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div className="form-group">
           <label htmlFor="description">Description</label>
           <textarea
             id="description"
@@ -83,26 +103,6 @@ export default function ReportForm({ onReportSubmitted }) {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">Select a category...</option>
-            <option value="Theft">Theft</option>
-            <option value="Assault">Assault</option>
-            <option value="Vandalism">Vandalism</option>
-            <option value="Fraud">Fraud</option>
-            <option value="Harassment">Harassment</option>
-            <option value="Drug Activity">Drug Activity</option>
-            <option value="Traffic Violation">Traffic Violation</option>
-            <option value="Public Disturbance">Public Disturbance</option>
-            <option value="Other">Other</option>
-          </select>
         </div>
 
         <div className="form-group">
