@@ -1,0 +1,15 @@
+{
+    "name": "blockchain",
+    "version": "1.0.0",
+    "description": "Smart contract for Decentralized Incident Reporting System",
+    "scripts": {
+        "compile": "hardhat compile",
+        "test": "hardhat test",
+        "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+        "deploy:amoy": "hardhat run scripts/deploy.js --network amoy"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+        "hardhat": "^2.19.0"
+    }
+}

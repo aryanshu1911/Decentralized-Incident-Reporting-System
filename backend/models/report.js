@@ -7,6 +7,7 @@ const reportSchema = new mongoose.Schema({
   location: { type: String, required: true },
   imageCID: { type: String, required: true },
   blockchainHash: { type: String },
+  txHash: { type: String, default: null },     // blockchain transaction proof
   status: { type: String, default: 'Pending' },
   createdAt: { type: Date, default: Date.now }
 });

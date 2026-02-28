@@ -2,16 +2,17 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Deploying contract with account:", deployer.address);
 
-  const Contract = await ethers.getContractFactory("complaintHash");
+  const Contract = await ethers.getContractFactory("ComplaintHash");
   const contract = await Contract.deploy();
-  await contract.deployed();
+  await contract.waitForDeployment();
 
-  console.log("Contract deployed at:", contract.address);
+  const address = await contract.getAddress();
+  console.log("ComplaintHash deployed at:", address);
 }
 
 main()
   .then(() => process.exit(0))
-  .catch(err => {
+  .catch((err) => {
     console.error(err);
     process.exit(1);
   });

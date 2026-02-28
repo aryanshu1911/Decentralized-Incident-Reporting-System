@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { uploadFileToPinata } = require('../utils/pinata');
+const { storeHashOnChain } = require('../utils/blockchain');
 
 // Multer setup: store temp files in 'uploads/' with 2MB limit
 const upload = multer({
@@ -59,10 +60,21 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     await report.save();
 
-    // Return reportId to user
+    // 🆕 Send hash to blockchain (after MongoDB save)
+    // If this fails, the report is still in MongoDB — we just won't have txHash
+    const txHash = await storeHashOnChain(reportId, blockchainHash);
+
+    // Save txHash back to MongoDB (if blockchain succeeded)
+    if (txHash) {
+      report.txHash = txHash;
+      await report.save();
+    }
+
+    // Return reportId + txHash to user
     res.status(201).json({
       message: 'Report submitted successfully!',
       reportId,
+      txHash: txHash || 'Blockchain pending',
       status: report.status,
     });
   } catch (err) {
