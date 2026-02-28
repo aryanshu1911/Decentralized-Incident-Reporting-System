@@ -1,0 +1,58 @@
+Architecture
+----------------
+
+Capstone/
+├── backend/
+│   ├── server.js              # Express setup + DB connection
+│   ├── .env                   # Environment variables (not in repo)
+│   ├── models/
+│   │   └── report.js          # Mongoose schema
+│   ├── routes/
+│   │   └── reports.js         # REST API endpoints
+│   └── utils/
+│       └── pinata.js          # Pinata IPFS upload utility
+├── frontend/
+│   ├── public/
+│   │   └── index.html
+│   └── src/
+│       ├── App.js             # Main app component
+│       ├── App.css            # Styling
+│       ├── index.js           # React entry point
+│       ├── components/
+│       │   ├── reportForm.js  # Report submission form
+│       │   └── reportList.js  # Report listing component
+│       └── utils/
+│           └── api.js         # Axios API calls
+├── blockchain/
+│   ├── contracts/
+│   │   └── complaintHash.sol  # Solidity smart contract
+│   └── scripts/
+│       └── deploy.js          # Contract deployment script
+└── .gitignore
+
+
+================================================================================================
+
+
+Data Flow
+--------------
+
+Frontend (React + Web3)
+ └─ ComplaintForm
+      └─ Upload image → IPFS/Pinata → get CID
+      └─ Generate SHA-256 hash of complaintId + description + location + imageCID
+      └─ Send hash & complaintId to Smart Contract
+      └─ Optional: Send complaint metadata to Backend (MongoDB) for fast querying
+
+Smart Contract (Polygon Mumbai)
+ └─ storeHash(hash, complaintId, reporterWallet)
+ └─ updateStatus(complaintId, status) [admin]
+ └─ verifyHash(complaintId) → confirms tamper-proof
+
+Backend (Node.js + MongoDB) [Optional]
+ └─ Stores complaint data (description, location, imageCID, hash, status)
+ └─ Provides REST API for frontend to fetch & display complaints
+
+IPFS / Pinata
+ └─ Stores uploaded images/videos
+ └─ Returns CID → stored on-chain & in backend
