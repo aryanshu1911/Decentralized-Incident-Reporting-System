@@ -27,7 +27,7 @@ const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, wallet);
 
 /**
- * Store a complaint hash on the blockchain
+ * Store a report hash on the blockchain
  * @param {string} reportId   - Unique report ID (e.g. "1709123456789")
  * @param {string} hexHash    - SHA-256 hash as hex string (without 0x prefix)
  * @returns {string|null}     - Transaction hash on success, null on failure

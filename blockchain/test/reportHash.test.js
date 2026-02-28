@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("ComplaintHash", function () {
+describe("ReportHash", function () {
     let contract, admin, user1;
 
     // Helper: create a bytes32 hash from a string
@@ -9,7 +9,7 @@ describe("ComplaintHash", function () {
 
     beforeEach(async function () {
         [admin, user1] = await ethers.getSigners();
-        const Factory = await ethers.getContractFactory("ComplaintHash");
+        const Factory = await ethers.getContractFactory("ReportHash");
         contract = await Factory.deploy();
         await contract.waitForDeployment();
     });
@@ -29,12 +29,12 @@ describe("ComplaintHash", function () {
     });
 
     // ── 3. storeHash duplicate ───────────────────────────────
-    it("should revert if hash already stored for same complaintId", async function () {
+    it("should revert if hash already stored for same reportId", async function () {
         const hash = toHash("report1-data");
         await contract.storeHash("RPT001", hash);
 
         await expect(contract.storeHash("RPT001", hash))
-            .to.be.revertedWith("Hash already stored for this complaint");
+            .to.be.revertedWith("Hash already stored for this report");
     });
 
     // ── 4. verifyHash ────────────────────────────────────────
@@ -67,12 +67,12 @@ describe("ComplaintHash", function () {
             .to.be.revertedWith("Only admin can call this");
     });
 
-    // ── 7. getComplaint ──────────────────────────────────────
-    it("should return correct complaint data", async function () {
+    // ── 7. getReport ──────────────────────────────────────
+    it("should return correct report data", async function () {
         const hash = toHash("report1-data");
         await contract.connect(user1).storeHash("RPT001", hash);
 
-        const [storedHash, reporter, timestamp, status] = await contract.getComplaint("RPT001");
+        const [storedHash, reporter, timestamp, status] = await contract.getReport("RPT001");
 
         expect(storedHash).to.equal(hash);
         expect(reporter).to.equal(user1.address);

@@ -69,11 +69,11 @@ Capstone/
 │           └── api.js         # Axios API calls
 ├── blockchain/
 │   ├── contracts/
-│   │   └── complaintHash.sol  # Solidity smart contract
+│   │   └── reportHash.sol    # Solidity smart contract
 │   ├── scripts/
 │   │   └── deploy.js          # Contract deployment script
 │   ├── test/
-│   │   └── complaintHash.test.js  # Unit tests (7 tests)
+│   │   └── reportHash.test.js     # Unit tests (7 tests)
 │   ├── hardhat.config.js      # Hardhat configuration
 │   └── package.json           # Blockchain dependencies
 └── .gitignore

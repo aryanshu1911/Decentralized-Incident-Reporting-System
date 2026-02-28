@@ -10,7 +10,7 @@
             {
                 "indexed": false,
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             },
             {
@@ -35,7 +35,7 @@
             {
                 "indexed": false,
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             },
             {
@@ -65,11 +65,11 @@
         "inputs": [
             {
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             }
         ],
-        "name": "getComplaint",
+        "name": "getReport",
         "outputs": [
             {
                 "internalType": "bytes32",
@@ -99,7 +99,7 @@
         "inputs": [
             {
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             },
             {
@@ -117,7 +117,7 @@
         "inputs": [
             {
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             },
             {
@@ -135,7 +135,7 @@
         "inputs": [
             {
                 "internalType": "string",
-                "name": "complaintId",
+                "name": "reportId",
                 "type": "string"
             },
             {

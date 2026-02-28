@@ -1,0 +1,113 @@
+============================================================
+  HOW TO RUN — Decentralized Incident Reporting System
+============================================================
+
+PREREQUISITES:
+  - Node.js installed
+  - MongoDB Atlas account (IP whitelisted)
+  - Pinata API keys (in backend/.env)
+  - Internet connection
+
+
+STEP 1: Start the Blockchain (Terminal 1)
+-----------------------------------------
+  cd c:\RANCHO\ASR\PROJECTS\Capstone\blockchain
+  npx hardhat node
+
+  → Keep this terminal OPEN. It runs a local Ethereum node.
+  → You'll see 20 test accounts with fake ETH.
+
+
+STEP 2: Deploy the Smart Contract (Terminal 2)
+-----------------------------------------------
+  cd c:\RANCHO\ASR\PROJECTS\Capstone\blockchain
+  npx hardhat run scripts/deploy.js --network localhost
+
+  → Copy the "ReportHash deployed at: 0x..." address
+  → Paste it in backend/.env → CONTRACT_ADDRESS=0x...
+
+  ⚠️ You must do this EVERY time you restart the Hardhat node!
+
+
+STEP 3: Start the Backend (Terminal 3)
+--------------------------------------
+  cd c:\RANCHO\ASR\PROJECTS\Capstone\backend
+  node server.js
+
+  → You should see:
+     "Server running on port 5000"
+     "MongoDB connected!"
+
+  → If MongoDB fails, whitelist your IP in MongoDB Atlas.
+
+
+STEP 4: Test the APIs (use curl.exe, NOT curl)
+-----------------------------------------------
+
+  Submit a report (ALL ON ONE LINE):
+    curl.exe -X POST http://localhost:5000/reports -F "category=Theft" -F "description=Stolen bike" -F "location=Mumbai" -F "file=@C:\path\to\image.jpg;type=image/jpeg"
+
+  View all reports:
+    curl.exe http://localhost:5000/reports
+
+  Update report status:
+    curl.exe -X PUT http://localhost:5000/reports/REPORT_ID/status -H "Content-Type: application/json" -d "{\"status\": \"Resolved\"}"
+
+  Expected response:
+    {"message":"Report submitted successfully!","reportId":"...","txHash":"0x...","status":"Pending"}
+
+
+STEP 5: Run Smart Contract Tests (Optional)
+--------------------------------------------
+  cd c:\RANCHO\ASR\PROJECTS\Capstone\blockchain
+  npx hardhat test
+
+  → All 7 tests should pass.
+
+
+============================================================
+  AFTER A BREAK — HOW TO RESTART
+============================================================
+
+  1. Open MongoDB Atlas → whitelist your current IP (if changed)
+  2. Terminal 1: cd blockchain → npx hardhat node
+  3. Terminal 2: cd blockchain → npx hardhat run scripts/deploy.js --network localhost
+  4. Copy new contract address → update backend/.env → CONTRACT_ADDRESS=0x...
+  5. Terminal 3: cd backend → node server.js
+  6. Test with curl.exe
+
+
+============================================================
+  COMMON ERRORS & FIXES
+============================================================
+
+  "EADDRINUSE: address already in use 127.0.0.1:8545"
+    → Hardhat node is already running. Don't start it again.
+
+  "Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)"
+    → Ignore. This is a Windows + Node.js bug. Your command worked fine.
+
+  "curl: A parameter cannot be found that matches parameter name 'X'"
+    → Use "curl.exe" not "curl" in PowerShell.
+
+  "Operation timed out after 10000ms"
+    → MongoDB Atlas IP not whitelisted. Go to Atlas → Network Access → Add IP.
+
+  "Server error during report submission"
+    → Check CONTRACT_ADDRESS in .env matches the latest deploy output.
+    → Make sure Hardhat node is still running.
+
+
+============================================================
+  IMPORTANT NOTES
+============================================================
+
+  1. ALWAYS start Hardhat node FIRST, then deploy, then backend.
+  2. Deploy ONCE per session. Don't run deploy.js multiple times.
+  3. The PRIVATE_KEY in .env is Hardhat's test key — NOT a real key.
+  4. Your .env file contains secrets — it's in .gitignore, never push it.
+  5. Pinata & MongoDB Atlas are cloud services — they keep running
+     even when you close the browser tabs.
+
+
+Deployed Solidity smart contract on Polygon Mumbai testnet and integrated on-chain hash verification using ethers.js for tamper-proof evidence validation.

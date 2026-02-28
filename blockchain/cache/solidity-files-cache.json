@@ -1,10 +1,10 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\RANCHO\\ASR\\PROJECTS\\Capstone\\blockchain\\contracts\\complaintHash.sol": {
-      "lastModificationDate": 1772267059986,
-      "contentHash": "70b7293f2ff53be2fa30e9ac5255d0f3",
-      "sourceName": "contracts/complaintHash.sol",
+    "C:\\RANCHO\\ASR\\PROJECTS\\Capstone\\blockchain\\contracts\\reportHash.sol": {
+      "lastModificationDate": 1772289206886,
+      "contentHash": "8bde3dd25ae5b59b07a9f2ca456771bd",
+      "sourceName": "contracts/reportHash.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -34,7 +34,7 @@
         "^0.8.20"
       ],
       "artifacts": [
-        "ComplaintHash"
+        "ReportHash"
       ]
     }
   }
