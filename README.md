@@ -34,10 +34,10 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 18, Axios |
-| **Backend** | Node.js, Express 5 |
+| **Backend** | Node.js, Express 5, ethers.js |
 | **Database** | MongoDB (Mongoose) |
 | **File Storage** | IPFS via Pinata |
-| **Blockchain** | Solidity Smart Contract |
+| **Blockchain** | Solidity, Hardhat, Polygon Amoy |
 | **File Upload** | Multer |
 
 ## 📁 Project Structure
@@ -48,11 +48,13 @@ Capstone/
 │   ├── server.js              # Express setup + DB connection
 │   ├── .env                   # Environment variables (not in repo)
 │   ├── models/
-│   │   └── report.js          # Mongoose schema
+│   │   └── report.js          # Mongoose schema (+ txHash field)
 │   ├── routes/
-│   │   └── reports.js         # REST API endpoints
+│   │   └── reports.js         # REST API endpoints + blockchain call
 │   └── utils/
-│       └── pinata.js          # Pinata IPFS upload utility
+│       ├── pinata.js          # Pinata IPFS upload utility
+│       ├── blockchain.js      # Smart contract bridge (ethers.js)
+│       └── contractABI.json   # Contract ABI for ethers.js
 ├── frontend/
 │   ├── public/
 │   │   └── index.html
@@ -68,8 +70,12 @@ Capstone/
 ├── blockchain/
 │   ├── contracts/
 │   │   └── complaintHash.sol  # Solidity smart contract
-│   └── scripts/
-│       └── deploy.js          # Contract deployment script
+│   ├── scripts/
+│   │   └── deploy.js          # Contract deployment script
+│   ├── test/
+│   │   └── complaintHash.test.js  # Unit tests (7 tests)
+│   ├── hardhat.config.js      # Hardhat configuration
+│   └── package.json           # Blockchain dependencies
 └── .gitignore
 ```
 
@@ -98,6 +104,9 @@ PINATA_API_KEY=your_pinata_api_key
 PINATA_API_SECRET=your_pinata_api_secret
 MONGO_URI=your_mongodb_connection_string
 PORT=5000
+RPC_URL=http://127.0.0.1:8545
+PRIVATE_KEY=your_hardhat_test_private_key
+CONTRACT_ADDRESS=your_deployed_contract_address
 ```
 
 Start the backend:

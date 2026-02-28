@@ -6,11 +6,13 @@ Capstone/
 │   ├── server.js              # Express setup + DB connection
 │   ├── .env                   # Environment variables (not in repo)
 │   ├── models/
-│   │   └── report.js          # Mongoose schema
+│   │   └── report.js          # Mongoose schema (+ txHash field)
 │   ├── routes/
-│   │   └── reports.js         # REST API endpoints
+│   │   └── reports.js         # REST API endpoints + blockchain call
 │   └── utils/
-│       └── pinata.js          # Pinata IPFS upload utility
+│       ├── pinata.js          # Pinata IPFS upload utility
+│       ├── blockchain.js      # Smart contract bridge (ethers.js)
+│       └── contractABI.json   # Contract ABI for ethers.js
 ├── frontend/
 │   ├── public/
 │   │   └── index.html
@@ -26,8 +28,13 @@ Capstone/
 ├── blockchain/
 │   ├── contracts/
 │   │   └── complaintHash.sol  # Solidity smart contract
-│   └── scripts/
-│       └── deploy.js          # Contract deployment script
+│   ├── scripts/
+│   │   └── deploy.js          # Contract deployment script
+│   ├── test/
+│   │   └── complaintHash.test.js  # Unit tests (7 tests)
+│   ├── hardhat.config.js      # Hardhat configuration
+│   └── package.json           # Blockchain dependencies
+├── HOW_TO_RUN.txt             # Step-by-step run instructions
 └── .gitignore
 
 
@@ -37,22 +44,26 @@ Capstone/
 Data Flow
 --------------
 
-Frontend (React + Web3)
- └─ ComplaintForm
+User submits report via Frontend (React)
+ └─ POST /reports → Backend (Express)
       └─ Upload image → IPFS/Pinata → get CID
-      └─ Generate SHA-256 hash of complaintId + description + location + imageCID
-      └─ Send hash & complaintId to Smart Contract
-      └─ Optional: Send complaint metadata to Backend (MongoDB) for fast querying
+      └─ Generate SHA-256 hash (reportId + description + location + category + CID)
+      └─ Save report to MongoDB (metadata + CID + hash + status)
+      └─ Send hash to Smart Contract via ethers.js → get txHash
+      └─ Save txHash back to MongoDB
+      └─ Return response (reportId + txHash + status)
 
-Smart Contract (Polygon Mumbai)
- └─ storeHash(hash, complaintId, reporterWallet)
- └─ updateStatus(complaintId, status) [admin]
- └─ verifyHash(complaintId) → confirms tamper-proof
+Smart Contract (Hardhat / Polygon Amoy)
+ └─ storeHash(complaintId, hash) → stores hash + reporter + timestamp
+ └─ updateStatus(complaintId, status) [admin only]
+ └─ verifyHash(complaintId, hash) → confirms tamper-proof
+ └─ getComplaint(complaintId) → returns full complaint data
 
-Backend (Node.js + MongoDB) [Optional]
- └─ Stores complaint data (description, location, imageCID, hash, status)
+Backend (Node.js + Express + MongoDB)
+ └─ Stores complaint data (description, location, imageCID, hash, txHash, status)
+ └─ Calls smart contract after saving to MongoDB
  └─ Provides REST API for frontend to fetch & display complaints
 
 IPFS / Pinata
- └─ Stores uploaded images/videos
- └─ Returns CID → stored on-chain & in backend
+ └─ Stores uploaded images
+ └─ Returns CID → stored in MongoDB & referenced on-chain
