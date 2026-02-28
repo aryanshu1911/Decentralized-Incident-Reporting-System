@@ -150,3 +150,4 @@ The app will open at **http://localhost:3000**
 ## 📄 License
 
 This project is developed as a Capstone Project for academic purposes.
+
