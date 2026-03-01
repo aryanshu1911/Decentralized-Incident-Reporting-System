@@ -7,7 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { uploadFileToPinata } = require('../utils/pinata');
-const { storeHashOnChain } = require('../utils/blockchain');
+const { storeHashOnChain, updateStatusOnChain, verifyHashOnChain } = require('../utils/blockchain');
 
 // Multer setup: store temp files in 'uploads/' with 2MB limit
 const upload = multer({
@@ -94,7 +94,50 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PUT: update status via reportId
+// GET: single report by ID
+router.get('/:reportId', async (req, res) => {
+  try {
+    const report = await Report.findOne({ reportId: req.params.reportId });
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+    res.json(report);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching report' });
+  }
+});
+
+// GET: verify a specific report on the blockchain
+router.get('/:reportId/verify', async (req, res) => {
+  try {
+    const report = await Report.findOne({ reportId: req.params.reportId });
+    if (!report) return res.status(404).json({ error: 'Report not found in database' });
+
+    if (!report.blockchainHash || !report.txHash || report.txHash === 'Blockchain pending') {
+      return res.json({
+        reportId: report.reportId,
+        verified: false,
+        message: 'Report is missing blockchain verification data.'
+      });
+    }
+
+    // Ping the blockchain smart contract!
+    const isVerified = await verifyHashOnChain(report.reportId, report.blockchainHash);
+
+    res.json({
+      reportId: report.reportId,
+      verified: isVerified,
+      blockchainHash: report.blockchainHash,
+      message: isVerified
+        ? 'Cryptographic Hash mathematically verified on the Ethereum Blockchain ✅'
+        : 'Warning: Blockchain data does not match database record ❌'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error verifying report' });
+  }
+});
+
+// PUT: update status via reportId (Admin Only)
 router.put('/:reportId/status', async (req, res) => {
   try {
     const { status } = req.body;
@@ -102,15 +145,20 @@ router.put('/:reportId/status', async (req, res) => {
     const report = await Report.findOneAndUpdate(
       { reportId: req.params.reportId },
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!report) return res.status(404).json({ error: 'Report not found' });
+
+    // 🆕 Also update the status permanently on the Blockchain!
+    // Since only Admin can do this on the contract, ensure the backend `.env` is the Admin wallet
+    const chainSuccess = await updateStatusOnChain(req.params.reportId, status);
 
     res.json({
       message: 'Status updated',
       reportId: report.reportId,
       status: report.status,
+      blockchainSynced: chainSuccess
     });
   } catch (err) {
     console.error(err);

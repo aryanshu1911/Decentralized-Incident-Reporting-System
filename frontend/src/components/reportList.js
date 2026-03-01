@@ -1,7 +1,7 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { getReports } from '../utils/api';
+import { getReports, updateReportStatus } from '../utils/api';
 
-const ReportList = forwardRef((props, ref) => {
+const ReportList = forwardRef(({ isAdmin = false }, ref) => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +22,22 @@ const ReportList = forwardRef((props, ref) => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (reportId, newStatus) => {
+    try {
+      // Optimistic UI update
+      setReports((prev) =>
+        prev.map(r => r.reportId === reportId ? { ...r, status: newStatus } : r)
+      );
+      // Actual API call which updates Mongo + Smart Contract
+      await updateReportStatus(reportId, newStatus);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      // Revert on failure by refreshing
+      fetchReports();
+      alert("Failed to sync status to Blockchain. Please try again.");
     }
   };
 
@@ -57,9 +73,22 @@ const ReportList = forwardRef((props, ref) => {
           <div className="report-card" key={report.reportId}>
             <div className="report-card-header">
               <span className="report-card-id">ID: {report.reportId}</span>
-              <span className={`status-badge ${getStatusClass(report.status)}`}>
-                {report.status}
-              </span>
+              {isAdmin ? (
+                <select
+                  value={report.status}
+                  onChange={(e) => handleStatusChange(report.reportId, e.target.value)}
+                  className={`status-badge ${getStatusClass(report.status)}`}
+                  style={{ cursor: 'pointer', border: 'none', appearance: 'auto' }}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              ) : (
+                <span className={`status-badge ${getStatusClass(report.status)}`}>
+                  {report.status}
+                </span>
+              )}
             </div>
             <div className="report-card-body">
               <p><strong>Category:</strong> {report.category}</p>

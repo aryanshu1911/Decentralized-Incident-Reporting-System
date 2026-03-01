@@ -23,3 +23,15 @@ export const updateReportStatus = async (reportId, status) => {
   const response = await axios.put(`${API_URL}/${reportId}/status`, { status });
   return response.data;
 };
+
+// Get a single report by ID
+export const getReportById = async (reportId) => {
+  const response = await axios.get(`${API_URL}/${reportId}`);
+  return response.data;
+};
+
+// Verify a report on the blockchain
+export const verifyReportOnChain = async (reportId) => {
+  const response = await axios.get(`${API_URL}/${reportId}/verify`);
+  return response.data;
+};

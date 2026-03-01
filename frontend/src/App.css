@@ -60,11 +60,52 @@ body {
   font-size: 1rem;
 }
 
-.divider {
-  border: none;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-  margin: 48px 0;
+.tabs-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tab-btn:hover {
+  border-color: var(--primary-light);
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}
+
+.tab-btn.admin-active {
+  background: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.tab-btn.admin-active.active {
+  background: var(--error);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(225, 112, 85, 0.4);
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
 }
 
 /* ===== Card Styles ===== */
@@ -404,7 +445,9 @@ body {
 
 /* ===== Animations ===== */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes slideIn {
@@ -412,6 +455,7 @@ body {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -419,8 +463,13 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .report-card {

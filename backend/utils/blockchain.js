@@ -53,4 +53,41 @@ const storeHashOnChain = async (reportId, hexHash) => {
     }
 };
 
-module.exports = { storeHashOnChain };
+/**
+ * Update the status of a report on the blockchain (Admin only)
+ * @param {string} reportId - Unique report ID
+ * @param {string} status   - New status string
+ * @returns {boolean}       - True on success, false on failure
+ */
+const updateStatusOnChain = async (reportId, status) => {
+    try {
+        console.log(`⛓️  Updating status on blockchain for report: ${reportId} to ${status}`);
+        const tx = await contract.updateStatus(reportId, status);
+        const receipt = await tx.wait();
+        console.log(`✅ Blockchain status updated tx: ${receipt.hash}`);
+        return true;
+    } catch (err) {
+        console.error('⚠️  Failed to update status on blockchain:', err.message);
+        return false;
+    }
+};
+
+/**
+ * Verify a hash exists on the blockchain for a report
+ * @param {string} reportId - Unique report ID
+ * @param {string} hexHash  - SHA-256 hash as hex string to verify
+ * @returns {boolean}       - True if verified and matches, false otherwise
+ */
+const verifyHashOnChain = async (reportId, hexHash) => {
+    try {
+        const bytes32Hash = '0x' + hexHash;
+        console.log(`🔍 Verifying hash on blockchain for report: ${reportId}`);
+        const isVerified = await contract.verifyHash(reportId, bytes32Hash);
+        return isVerified;
+    } catch (err) {
+        console.error('⚠️  Failed to verify hash on blockchain:', err.message);
+        return false;
+    }
+};
+
+module.exports = { storeHashOnChain, updateStatusOnChain, verifyHashOnChain };
