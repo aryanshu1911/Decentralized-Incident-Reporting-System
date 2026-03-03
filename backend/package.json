@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend for Crime/Social Issue Reporting DApp",
+  "description": "Backend for Anonymous Reporting System DApp",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
