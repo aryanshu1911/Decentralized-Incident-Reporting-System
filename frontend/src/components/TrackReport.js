@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { getReportById, verifyReportOnChain } from '../utils/api';
 
+// Helper: compute a human-readable relative time string
+function timeAgo(dateString) {
+    const seconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 export default function TrackReport() {
     const [reportId, setReportId] = useState('');
     const [report, setReport] = useState(null);
@@ -27,7 +39,11 @@ export default function TrackReport() {
             setVerification(verifyData);
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.error || 'Could not find a report with that ID.');
+            if (err.response?.status === 404) {
+                setError('No report found with that ID. Please check your Report ID and try again.');
+            } else {
+                setError(err.response?.data?.error || 'Could not find a report with that ID.');
+            }
         } finally {
             setLoading(false);
         }
@@ -39,6 +55,7 @@ export default function TrackReport() {
         if (s === 'pending') return 'pending';
         if (s === 'resolved') return 'resolved';
         if (s === 'in progress' || s === 'in-progress') return 'in-progress';
+        if (s === 'rejected') return 'rejected';
         return '';
     };
 
@@ -65,6 +82,9 @@ export default function TrackReport() {
                             {loading ? 'Searching...' : 'Track'}
                         </button>
                     </div>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '6px' }}>
+                        🔒 Your Report ID is your private access key. Do not share it publicly.
+                    </p>
                 </div>
             </form>
 
@@ -82,8 +102,12 @@ export default function TrackReport() {
                     <div className="report-card-body">
                         <p><strong>Category:</strong> {report.category}</p>
                         <p><strong>Description:</strong> {report.description}</p>
-                        <p><strong>Location:</strong> {report.location}</p>
-                        <p><strong>Submitted On:</strong> {new Date(report.createdAt).toLocaleString()}</p>
+                        <p><strong>Location:</strong> {report.locationText || 'N/A'}</p>
+                        <p><strong>Submitted:</strong> {new Date(report.createdAt).toLocaleString()}
+                            <span className="time-ago" style={{ marginLeft: '8px' }}>
+                                ({timeAgo(report.createdAt)})
+                            </span>
+                        </p>
 
                         {/* Cryptographic Verification Box */}
                         {verification && verification.verified && (
@@ -179,7 +203,8 @@ export default function TrackReport() {
                             </div>
                         )}
 
-                        {report.imageCID && (
+                        {/* Only show evidence image if a real CID exists (not NO_IMAGE) */}
+                        {report.imageCID && report.imageCID !== 'NO_IMAGE' && (
                             <div className="report-image" style={{ marginTop: '20px' }}>
                                 <p style={{ marginBottom: '8px' }}><strong>Evidence Image:</strong></p>
                                 <img

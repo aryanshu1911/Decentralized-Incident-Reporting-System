@@ -384,6 +384,29 @@ body {
   border: 1px solid rgba(108, 92, 231, 0.3);
 }
 
+.status-badge.rejected {
+  background: rgba(225, 112, 85, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(225, 112, 85, 0.3);
+}
+
+/* Relative timestamp label */
+.time-ago {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Prominent Report ID display after submission */
+.report-id-highlight {
+  background: rgba(0, 206, 201, 0.06);
+  border: 2px solid rgba(0, 206, 201, 0.3);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  animation: slideIn 0.4s ease;
+}
+
 .report-card-body p {
   margin-bottom: 6px;
   font-size: 0.9rem;

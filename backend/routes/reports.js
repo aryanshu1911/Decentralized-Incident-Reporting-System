@@ -25,38 +25,50 @@ const upload = multer({
 // POST: submit a report
 router.post('/', upload.single('file'), async (req, res) => {
   try {
-    const { category, description, location } = req.body;
+    const { category, description, locationText, longitude, latitude } = req.body;
     const file = req.file;
 
-    if (!description || !location || !category || !file) {
-      return res.status(400).json({ message: 'Missing required fields or file' });
+    if (!description || !locationText || !category) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Upload file to Pinata
-    const filePath = file.path;
-    const imageCID = await uploadFileToPinata(filePath, file.originalname);
+    let imageCID = "NO_IMAGE";
 
-    // Delete local temp file after upload
-    fs.unlinkSync(filePath);
+    // Upload file to Pinata if provided
+    if (file) {
+      const filePath = file.path;
+      imageCID = await uploadFileToPinata(filePath, file.originalname);
+      fs.unlinkSync(filePath); // Delete local temp file
+    }
 
     // Auto-generate reportId (timestamp)
     const reportId = new Date().getTime().toString();
 
-    // SHA-256 hash including reportId + description + location + category + imageCID
+    // SHA-256 hash including reportId + description + locationText + category + imageCID
     const blockchainHash = crypto
       .createHash('sha256')
-      .update(reportId + description + location + category + imageCID)
+      .update(reportId + description + locationText + category + imageCID)
       .digest('hex');
 
-    const report = new Report({
+    const reportData = {
       reportId,
       description,
-      location,
+      locationText,
       category,
       imageCID,
       blockchainHash,
       status: 'Pending',
-    });
+    };
+
+    // Include GeoJSON location only if valid coordinates are provided
+    if (longitude && latitude) {
+      reportData.location = {
+        type: 'Point',
+        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+      };
+    }
+
+    const report = new Report(reportData);
 
     await report.save();
 
@@ -83,14 +95,109 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 });
 
-// GET: all reports
+// GET: all reports (public — returns summary-only fields for privacy)
 router.get('/', async (req, res) => {
+  try {
+    // Only return fields safe for public display
+    const reports = await Report.find()
+      .select('reportId category description locationText status createdAt')
+      .sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching reports' });
+  }
+});
+
+// GET: all reports with full details (admin/internal use)
+router.get('/all', async (req, res) => {
   try {
     const reports = await Report.find().sort({ createdAt: -1 });
     res.json(reports);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error fetching reports' });
+  }
+});
+
+// GET: top trending reports by location
+router.get('/trending', async (req, res) => {
+  try {
+    const { lat, lng, radius = 10000, limit = 10 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    const maxDistance = parseFloat(radius);
+    const resultLimit = parseInt(limit);
+
+    const pipeline = [
+      // Stage 1: Filter by radius from user's location (only documents with valid coordinates)
+      {
+        $geoNear: {
+          near: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+          distanceField: 'distance',
+          maxDistance: maxDistance,
+          spherical: true,
+          query: { "location.coordinates": { $exists: true } }
+        }
+      },
+      // Stage 2: Calculate how many hours ago the report was created
+      {
+        $addFields: {
+          hours_since_post: {
+            $divide: [
+              { $subtract: [new Date(), "$createdAt"] },
+              3600000 // milliseconds in one hour
+            ]
+          }
+        }
+      },
+      // Stage 3: Linear recency boost — decays from 10 to 0 over ~10 days (240 hours)
+      // Formula: recencyBoost = max(0, 10 - (hours_since_post / 24))
+      {
+        $addFields: {
+          recencyBoost: {
+            $max: [
+              0,
+              { $subtract: [10, { $divide: ["$hours_since_post", 24] }] }
+            ]
+          }
+        }
+      },
+      // Stage 4: Compute final trending score
+      // score = (2 × upvotes) + (1.5 × commentsCount) + (3 × severity) + recencyBoost
+      {
+        $addFields: {
+          score: {
+            $add: [
+              { $multiply: [2, { $ifNull: ["$upvotes", 0] }] },
+              { $multiply: [1.5, { $ifNull: ["$commentsCount", 0] }] },
+              { $multiply: [3, { $ifNull: ["$severity", 1] }] },
+              "$recencyBoost"
+            ]
+          }
+        }
+      },
+      // Stage 5 & 6: Sort by score descending and limit results
+      { $sort: { score: -1 } },
+      { $limit: resultLimit },
+      // Stage 7: Project only public-safe summary fields
+      {
+        $project: {
+          reportId: 1, category: 1, description: 1, locationText: 1,
+          status: 1, createdAt: 1, score: 1, distance: 1,
+          upvotes: 1, commentsCount: 1, severity: 1
+        }
+      }
+    ];
+
+    const trendingReports = await Report.aggregate(pipeline);
+    res.json(trendingReports);
+  } catch (err) {
+    console.error('Trending fetch error:', err);
+    res.status(500).json({ error: 'Server error fetching trending reports' });
   }
 });
 
@@ -122,9 +229,11 @@ router.get('/:reportId/verify', async (req, res) => {
     }
 
     // Recalculate hash from CURRENT database data
+    // Important: Use locationText here, and handle NO_IMAGE correctly!
+    const imgCID = report.imageCID || "NO_IMAGE";
     const recalculatedHash = crypto
       .createHash('sha256')
-      .update(report.reportId + report.description + report.location + report.category + report.imageCID)
+      .update(report.reportId + report.description + report.locationText + report.category + imgCID)
       .digest('hex');
 
     // Ping the blockchain smart contract with the RECALCULATED hash!
@@ -155,6 +264,14 @@ router.get('/:reportId/verify', async (req, res) => {
 router.put('/:reportId/status', async (req, res) => {
   try {
     const { status } = req.body;
+
+    // Validate status value (Title Case, consistent across app)
+    const allowedStatuses = ['Pending', 'In Progress', 'Resolved', 'Rejected'];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid status. Must be one of: ${allowedStatuses.join(', ')}`
+      });
+    }
 
     const report = await Report.findOneAndUpdate(
       { reportId: req.params.reportId },
