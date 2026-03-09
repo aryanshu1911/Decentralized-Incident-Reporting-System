@@ -23,3 +23,7 @@ structure.txt
 
 # Samples
 samples/
+
+# Hardhat
+cache/
+artifacts/
