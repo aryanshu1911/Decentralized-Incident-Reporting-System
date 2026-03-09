@@ -210,6 +210,16 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
                 </div>
               )}
 
+              {/* Investigator: View Community Actions */}
+              <div className="community-stats" style={{ marginTop: '15px', display: 'flex', gap: '15px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  👍 <strong>{report.upvotes || 0}</strong> Upvotes
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  🚩 <strong>{report.disputes || 0}</strong> Disputes
+                </span>
+              </div>
+
               {report.txHash && report.txHash !== 'Blockchain pending' && (
                 <p className="report-card-hash" style={{ marginTop: '15px', fontSize: '0.75rem', opacity: 0.7 }}>
                   ⛓️ <strong>Tx Hash:</strong> {report.txHash}
