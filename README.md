@@ -23,12 +23,10 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
 ## ✨ Features
 
 - 📝 **Submit Reports** — description, location, category & optional image evidence
-- � **Geolocation Support** — opt-in GPS coordinates for geospatial queries (GeoJSON + 2dsphere index)
 - �📸 **IPFS Evidence Storage** — images uploaded to Pinata/IPFS for decentralized storage
 - 🔒 **SHA-256 Hash Generation** — tamper-proof hash of report data + evidence CID
 - 🔍 **Track My Report** — verify your report's blockchain hash using your private Report ID (copy-to-clipboard)
 - � **Public Reports View** — read-only Recent/Trending views with summary data, status badges & relative timestamps
-- 🔥 **Trending Algorithm** — geospatial radius filtering + linear recency boost scoring
 - 👮 **Secure Investigator Panel** — passcode-locked portal with full report data, blockchain verification, status filter
 - 🔄 **Status Management** — update report status (Pending → In Progress → Resolved → Rejected) on MongoDB + Smart Contract
 - 🗑️ **Delete Reports** — remove reports via API
@@ -41,7 +39,7 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
 | **Backend** | Node.js, Express 5, ethers.js |
 | **Database** | MongoDB (Mongoose) |
 | **File Storage** | IPFS via Pinata |
-| **Blockchain** | Solidity, Hardhat, Polygon Amoy |
+| **Blockchain** | Solidity, Hardhat/Polygon Amoy |
 | **File Upload** | Multer |
 
 ## 📁 Project Structure
