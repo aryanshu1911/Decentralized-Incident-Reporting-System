@@ -31,6 +31,7 @@ export default function PublicReports() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [votingIds, setVotingIds] = useState(new Set()); // track which reports are currently being voted on to prevent double clicks
     const [votedReports, setVotedReports] = useState(new Set()); // simple local tracking to prevent immediate re-voting
+    const [categoryFilter, setCategoryFilter] = useState('All'); // New state for filtering
 
     useEffect(() => {
         fetchReports();
@@ -77,9 +78,40 @@ export default function PublicReports() {
         }
     };
 
+    const filteredReports = categoryFilter === 'All'
+        ? reports
+        : reports.filter(r => r.category === categoryFilter);
+
     return (
         <div className="card">
-            <h2><span className="icon">📊</span> Public Reports</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h2 style={{ margin: 0 }}><span className="icon">📊</span> Public Reports</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                        Category:
+                    </label>
+                    <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        style={{
+                            padding: '6px 12px', borderRadius: '6px',
+                            background: 'var(--bg-input)', color: 'var(--text)',
+                            border: '1px solid var(--border)', fontSize: '0.85rem'
+                        }}
+                    >
+                        <option value="All">All Categories</option>
+                        <option value="Theft">Theft</option>
+                        <option value="Assault">Assault</option>
+                        <option value="Vandalism">Vandalism</option>
+                        <option value="Fraud">Fraud</option>
+                        <option value="Harassment">Harassment</option>
+                        <option value="Drug Activity">Drug Activity</option>
+                        <option value="Traffic Violation">Traffic Violation</option>
+                        <option value="Public Disturbance">Public Disturbance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
             <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '0.9rem' }}>
                 Browse recently submitted incident reports. For full report details, use "Track My Report" with your Report ID.
             </p>
@@ -91,15 +123,15 @@ export default function PublicReports() {
                 </div>
             )}
 
-            {!loading && reports.length === 0 && (
+            {!loading && filteredReports.length === 0 && (
                 <div className="empty-state">
                     <div className="empty-icon">📭</div>
-                    <p>No reports found.</p>
+                    <p>No reports found for this filter.</p>
                 </div>
             )}
 
             <div className="report-list">
-                {reports.map((report) => (
+                {filteredReports.map((report) => (
                     <div className="report-card" key={report.reportId || report._id}>
                         <div className="report-card-header">
                             <span className="time-ago">🕐 Reported {timeAgo(report.createdAt)}</span>

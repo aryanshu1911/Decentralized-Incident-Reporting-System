@@ -18,6 +18,7 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
   const [loading, setLoading] = useState(true);
   const [verifications, setVerifications] = useState({});
   const [statusFilter, setStatusFilter] = useState('All'); // Admin status filter
+  const [categoryFilter, setCategoryFilter] = useState('All'); // New category filter
   const [selectedImage, setSelectedImage] = useState(null);
 
   useImperativeHandle(ref, () => ({
@@ -81,35 +82,61 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
     return '';
   };
 
-  // Filter reports by status (admin feature)
-  const filteredReports = statusFilter === 'All'
-    ? reports
-    : reports.filter(r => r.status === statusFilter);
+  // Filter reports by status and category (admin feature)
+  const filteredReports = reports.filter(r => {
+    const statusMatch = statusFilter === 'All' ? true : r.status === statusFilter;
+    const categoryMatch = categoryFilter === 'All' ? true : r.category === categoryFilter;
+    return statusMatch && categoryMatch;
+  });
 
   return (
     <div className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ margin: 0 }}><span className="icon">📋</span> All Reports</h2>
         {isAdmin && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-              Filter:
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              style={{
-                padding: '6px 12px', borderRadius: '6px',
-                background: 'var(--bg-input)', color: 'var(--text)',
-                border: '1px solid var(--border)', fontSize: '0.85rem'
-              }}
-            >
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Category:</label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                style={{
+                  padding: '6px 12px', borderRadius: '6px',
+                  background: 'var(--bg-input)', color: 'var(--text)',
+                  border: '1px solid var(--border)', fontSize: '0.85rem'
+                }}
+              >
+                <option value="All">All Topics</option>
+                <option value="Theft">Theft</option>
+                <option value="Assault">Assault</option>
+                <option value="Vandalism">Vandalism</option>
+                <option value="Fraud">Fraud</option>
+                <option value="Harassment">Harassment</option>
+                <option value="Drug Activity">Drug Activity</option>
+                <option value="Traffic Violation">Traffic Violation</option>
+                <option value="Public Disturbance">Public Disturbance</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{
+                  padding: '6px 12px', borderRadius: '6px',
+                  background: 'var(--bg-input)', color: 'var(--text)',
+                  border: '1px solid var(--border)', fontSize: '0.85rem'
+                }}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
