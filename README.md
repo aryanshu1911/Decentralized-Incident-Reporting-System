@@ -1,4 +1,4 @@
-# 🛡️ Decentralized Incident Reporting System
+# 🛡️ Decentralized Incident Reporting System (capstone)
 
 A full-stack decentralized application (DApp) for reporting crime and social issues with **tamper-proof evidence** using IPFS and blockchain smart contracts.
 
