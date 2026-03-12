@@ -41,7 +41,7 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
                  │                   │                       │
                  │                   ▼                       ▼
                  │             ┌─────────────┐       ┌───────────────┐
-                 │             │     IPFS    │       │  Solidity     │
+                 │             │     IPFS    │       │   Solidity    │
                  │             │ File Storage│       │ SmartContract │
                  │             └─────────────┘       └───────────────┘
                  │
