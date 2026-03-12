@@ -9,15 +9,47 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
 ## 🏗️ Architecture Overview
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   React UI  │────▶│ Express API  │────▶│  MongoDB    │
-│  (Frontend) │     │  (Backend)   │     │  (Database)  │
-└─────────────┘     └──────┬───────┘     └─────────────┘
-                           │
-                    ┌──────▼───────┐     ┌─────────────┐
-                    │  Pinata API  │     │  Solidity    │
-                    │   (IPFS)     │     │  Contract    │
-                    └──────────────┘     └─────────────┘
+                          ┌───────────────────────────┐
+                          │        React Frontend     │
+                          │  (Submit, Track, Admin)   │
+                          └─────────────┬─────────────┘
+                                        │
+                                  HTTP / REST
+                                        │
+                                        ▼
+                        ┌────────────────────────────┐
+                        │        Express API         │
+                        │        (Node.js)           │
+                        │                            │
+                        │  • Report Processing       │
+                        │  • SHA-256 Hash Creation   │ 
+                        │  • Smart Contract Calls    │ 
+                        └─────────────┬──────────────┘
+                                      │
+                 ┌────────────────────┼────────────────────┐
+                 │                    │                    │
+                 ▼                    ▼                    ▼
+
+        ┌───────────────┐     ┌───────────────┐     ┌────────────────┐
+        │    MongoDB    │     │    Pinata     │     │  Hardhat Local │
+        │   Database    │     │   IPFS API    │     │   Blockchain   │
+        │               │     │               │     │                │
+        │ • Reports     │     │ • Upload Img  │     │ • SmartContract│
+        │ • Status      │     │ • Return CID  │     │ • Hash Storage │
+        │ • Metadata    │     │               │     │                │
+        └────────┬──────┘     └──────┬────────┘     └────────┬───────┘
+                 │                   │                       │
+                 │                   ▼                       ▼
+                 │             ┌─────────────┐       ┌───────────────┐
+                 │             │     IPFS    │       │  Solidity     │
+                 │             │ File Storage│       │ SmartContract │
+                 │             └─────────────┘       └───────────────┘
+                 │
+                 ▼
+        ┌───────────────────┐
+        │  SHA-256 Hashing  │
+        │ (Report + CID)    │
+        └───────────────────┘
 ```
 
 ## ✨ Features
