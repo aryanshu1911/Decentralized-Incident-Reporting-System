@@ -1,10 +1,10 @@
-# 🛡️ Decentralized Incident Reporting System
+# 🛡️ Voices Unchained: Decentralized Incident Reporting System
 
-A full-stack decentralized application (DApp) for reporting crime and social issues with **tamper-proof evidence** using IPFS and blockchain smart contracts.
+**Voices Unchained** is a full-stack decentralized application (DApp) for reporting crime and social issues with **tamper-proof evidence** using IPFS and blockchain smart contracts.
 
 ## 📌 Abstract
 
-This system enables citizens to report incidents (crime, harassment, vandalism, fraud, etc.) with image evidence that is stored on **IPFS (via Pinata)** for decentralized, immutable storage. Each report generates a **SHA-256 blockchain hash** combining the report metadata and evidence CID, ensuring the integrity of submitted reports cannot be compromised.
+This platform enables citizens to report incidents (crime, harassment, vandalism, fraud, etc.) anonymously with image evidence stored on **IPFS (via Pinata)**. Each report generates a **SHA-256 blockchain hash**, ensuring the integrity and immutability of submitted reports.
 
 ## 🏗️ Architecture Overview
 
@@ -29,7 +29,6 @@ This system enables citizens to report incidents (crime, harassment, vandalism, 
                  ┌────────────────────┼────────────────────┐
                  │                    │                    │
                  ▼                    ▼                    ▼
-
         ┌───────────────┐     ┌───────────────┐     ┌────────────────┐
         │    MongoDB    │     │    Pinata     │     │  Hardhat Local │
         │   Database    │     │   IPFS API    │     │   Blockchain   │
@@ -83,7 +82,7 @@ Anonymous Reporting Platform/
 │   ├── server.js                     # Express setup + MongoDB connection
 │   ├── .env                          # Environment variables (not in repo)
 │   ├── models/
-│   │   └── report.js                 # Mongoose schema (GeoJSON location, trending fields, 2dsphere index)
+│   │   └── report.js                 # Mongoose schema
 │   ├── routes/
 │   │   └── reports.js                # REST API (public summary, admin full-data, trending, verify, status)
 │   ├── utils/
