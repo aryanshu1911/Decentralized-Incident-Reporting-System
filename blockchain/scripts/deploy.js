@@ -12,10 +12,7 @@ async function main() {
 
 main()
   .then(() => {
-    if (ethers.provider && ethers.provider.destroy) {
-      ethers.provider.destroy();
-    }
-    process.exit(0);
+    // Hardhat will handle the exit gracefully
   })
   .catch((err) => {
     console.error(err);

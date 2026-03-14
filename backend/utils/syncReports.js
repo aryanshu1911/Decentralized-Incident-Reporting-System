@@ -14,7 +14,7 @@
 
 const Report = require('../models/report');
 const { storeHashOnChain, contract, wallet } = require('./blockchain');
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 
 /**
  * Check if a report already exists on the current blockchain node

@@ -15,7 +15,7 @@
 
 const { ethers } = require('ethers');
 const contractABI = require('./contractABI.json');
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 
 const RPC_URL = process.env.RPC_URL;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
