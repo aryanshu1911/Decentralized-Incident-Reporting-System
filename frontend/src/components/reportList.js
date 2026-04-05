@@ -1,5 +1,5 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
-import { getAllReports, getTrendingReports, updateReportStatus, verifyReportOnChain } from '../utils/api';
+import { getAllReports, getTrendingReports, updateReportStatus, verifyReportOnChain, sendReportMessage } from '../utils/api';
 
 // Helper: compute a human-readable relative time string
 function timeAgo(dateString) {
@@ -20,6 +20,7 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
   const [statusFilter, setStatusFilter] = useState('All'); // Admin status filter
   const [categoryFilter, setCategoryFilter] = useState('All'); // New category filter
   const [selectedImage, setSelectedImage] = useState(null);
+  const [newMessages, setNewMessages] = useState({});
 
   useImperativeHandle(ref, () => ({
     refresh: () => {
@@ -72,13 +73,30 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
     }
   };
 
+  const handleSendMessage = async (reportId, e) => {
+    e.preventDefault();
+    const text = newMessages[reportId];
+    if (!text || !text.trim()) return;
+    try {
+      const data = await sendReportMessage(reportId, text);
+      // Automatically triggers re-render by appending the message
+      setReports(prev => prev.map(r => r.reportId === reportId ? 
+        { ...r, messages: [...(r.messages || []), data.newMessage] } : r
+      ));
+      setNewMessages(prev => ({ ...prev, [reportId]: '' }));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Failed to send message');
+    }
+  };
+
   const getStatusClass = (status) => {
     if (!status) return '';
     const s = status.toLowerCase();
-    if (s === 'pending') return 'pending';
-    if (s === 'resolved') return 'resolved';
-    if (s === 'in progress' || s === 'in-progress') return 'in-progress';
-    if (s === 'rejected') return 'rejected';
+    if (s.includes('pending')) return 'pending';
+    if (s.includes('resolved') || s === 'closed') return 'resolved';
+    if (s.includes('progress') || s.includes('investigation') || s.includes('evidence')) return 'in-progress';
+    if (s.includes('rejected')) return 'rejected';
     return '';
   };
 
@@ -131,8 +149,9 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
                 }}
               >
                 <option value="All">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
+                <option value="Pending Review">Pending Review</option>
+                <option value="Need More Evidence">Need More Evidence</option>
+                <option value="Under Investigation">Under Investigation</option>
                 <option value="Resolved">Resolved</option>
                 <option value="Rejected">Rejected</option>
               </select>
@@ -167,8 +186,9 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
                   className={`status-badge ${getStatusClass(report.status)}`}
                   style={{ cursor: 'pointer', border: 'none', appearance: 'auto' }}
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="In Progress">In Progress</option>
+                  <option value="Pending Review">Pending Review</option>
+                  <option value="Need More Evidence">Need More Evidence</option>
+                  <option value="Under Investigation">Under Investigation</option>
                   <option value="Resolved">Resolved</option>
                   <option value="Rejected">Rejected</option>
                 </select>
@@ -251,6 +271,51 @@ const ReportList = forwardRef(({ isAdmin = false }, ref) => {
                 <p className="report-card-hash" style={{ marginTop: '15px', fontSize: '0.75rem', opacity: 0.7 }}>
                   ⛓️ <strong>Tx Hash:</strong> {report.txHash}
                 </p>
+              )}
+
+              {/* Investigator Private Communication View */}
+              {isAdmin && !report.isLockedToOther && (
+                <div className="communication-thread" style={{ marginTop: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                  <h3>Investigation Thread</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      Private communication with the report creator. Only your assigned cases will allow you to claim this thread.
+                  </p>
+                  
+                  <div className="messages-list" style={{ maxHeight: '250px', overflowY: 'auto', margin: '16px 0', background: 'var(--bg-card-hover)', padding: '10px', borderRadius: '8px' }}>
+                      {(!report.messages || report.messages.length === 0) ? (
+                        <p style={{ fontSize: '0.85rem' }}>No messages sent yet. Send a message to auto-claim this report.</p>
+                      ) : report.messages.map((m, i) => (
+                          <div key={i} style={{ marginBottom: '10px', textAlign: m.senderRole === 'investigator' ? 'right' : 'left' }}>
+                              <div style={{ display: 'inline-block', maxWidth: '80%', padding: '8px 12px', borderRadius: '12px', background: m.senderRole === 'investigator' ? 'var(--primary-dark)' : 'var(--bg-input)' }}>
+                                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                                      {m.senderRole === 'investigator' ? 'Investigator (You)' : 'Reporter'}
+                                  </span>
+                                  {m.text}
+                                  <span style={{ fontSize: '0.65rem', display: 'block', marginTop: '4px', opacity: 0.7 }}>
+                                      {new Date(m.createdAt).toLocaleTimeString()}
+                                  </span>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+
+                  <form onSubmit={(e) => handleSendMessage(report.reportId, e)} style={{ display: 'flex', gap: '8px' }}>
+                      <input 
+                          type="text" 
+                          value={newMessages[report.reportId] || ''} 
+                          onChange={(e) => setNewMessages(prev => ({ ...prev, [report.reportId]: e.target.value }))} 
+                          placeholder="Send clarification request or status update..." 
+                          style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)' }} 
+                      />
+                      <button type="submit" className="btn-submit" style={{ margin: 0, padding: '10px 20px' }}>Send</button>
+                  </form>
+                </div>
+              )}
+              
+              {isAdmin && report.isLockedToOther && (
+                 <div style={{ marginTop: '16px', padding: '12px', fontStyle: 'italic', color: 'var(--text-muted)', background: 'var(--bg-card-hover)', borderRadius: '8px' }}>
+                  🔒 This report has been claimed and is being investigated by another agent. Private communication is strictly locked.
+                </div>
               )}
             </div>
           </div>

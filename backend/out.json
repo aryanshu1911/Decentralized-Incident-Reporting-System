@@ -1,0 +1,75 @@
+[
+  {
+    "_id": "69d1f00abbeb92f91bf9f437",
+    "reportId": "1775366154541",
+    "category": "Theft",
+    "description": "some bihari people tried to rob me in an afternoon street ",
+    "locationText": "pune",
+    "imageCID": "QmeH2VMCTx1efhsqh27518QgYrw4oBUrK7cECZexbbEhCh",
+    "blockchainHash": "72db0174adcee40713276ec5a10034407211485a51839c0eebd62c6479af7fd0",
+    "txHash": "0x27d7aec6c851dd48f6305e4137c2eee6bf2c43ac7b1c64c9b58da3601f3651ac",
+    "status": "Resolved",
+    "upvotes": 1,
+    "disputes": 0,
+    "commentsCount": 0,
+    "severity": 1,
+    "createdAt": "2026-04-05T05:15:54.544Z",
+    "__v": 2,
+    "disputedBy": [],
+    "messages": [
+      {
+        "senderId": "69d1f540d4a8d7e716dc3981",
+        "senderRole": "investigator",
+        "text": "hey",
+        "createdAt": "2026-04-05T09:06:29.772Z",
+        "_id": "69d2261528bfb687742f760e"
+      }
+    ],
+    "upvotedBy": [],
+    "assignedInvestigator": "69d1f540d4a8d7e716dc3981"
+  },
+  {
+    "_id": "69d1f776d4a8d7e716dc398d",
+    "reportId": "1775368054525",
+    "category": "Vandalism",
+    "description": "some guys attacked and mobbed my shop in broad daylight , claiming to be part of congress political paraty",
+    "locationText": "mumbai",
+    "imageCID": "QmeH2VMCTx1efhsqh27518QgYrw4oBUrK7cECZexbbEhCh",
+    "blockchainHash": "2983b6dd0895bafa06876dd1a487e011c7427825975276aa0941be353c966595",
+    "txHash": "0x0bc65ac8b90e87a5bb7a6603f80f437ab77e1ffc184f1bc4bd69351cbad14251",
+    "status": "Pending",
+    "upvotes": 3,
+    "disputes": 0,
+    "commentsCount": 0,
+    "severity": 1,
+    "userId": "69d1f736d4a8d7e716dc3989",
+    "createdAt": "2026-04-05T05:47:34.527Z",
+    "__v": 4,
+    "disputedBy": [],
+    "messages": [
+      {
+        "senderId": "69d1f540d4a8d7e716dc3981",
+        "senderRole": "investigator",
+        "text": "hey , I need some more proofs",
+        "createdAt": "2026-04-05T09:00:05.080Z",
+        "_id": "69d2249528bfb687742f75a7"
+      },
+      {
+        "senderId": "69d1f540d4a8d7e716dc3981",
+        "senderRole": "investigator",
+        "text": "u good ?",
+        "createdAt": "2026-04-05T09:00:12.137Z",
+        "_id": "69d2249c28bfb687742f75ab"
+      },
+      {
+        "senderId": "69d1f540d4a8d7e716dc3981",
+        "senderRole": "investigator",
+        "text": "you there",
+        "createdAt": "2026-04-05T09:06:21.149Z",
+        "_id": "69d2260d28bfb687742f760b"
+      }
+    ],
+    "upvotedBy": [],
+    "assignedInvestigator": "69d1f540d4a8d7e716dc3981"
+  }
+]

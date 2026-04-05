@@ -160,7 +160,15 @@ router.get('/all', auth, async (req, res) => {
     if (req.user.role !== 'investigator') {
       return res.status(403).json({ error: 'Not authorized as investigator' });
     }
-    const reports = await Report.find().sort({ createdAt: -1 });
+    
+    const User = require('../models/User');
+    const investigator = await User.findById(req.user.id);
+    let query = {};
+    if (investigator && investigator.specializations && investigator.specializations.length > 0) {
+      query.category = { $in: investigator.specializations };
+    }
+
+    const reports = await Report.find(query).sort({ createdAt: -1 });
 
     const processedReports = reports.map(r => {
       const imgCID = r.imageCID || "NO_IMAGE";
@@ -169,8 +177,16 @@ router.get('/all', auth, async (req, res) => {
         .update(r.reportId + r.description + r.locationText + r.category + imgCID)
         .digest('hex');
 
+      const obj = r.toObject();
+      if (obj.assignedInvestigator && obj.assignedInvestigator.toString() !== req.user.id) {
+          delete obj.messages;
+          obj.isLockedToOther = true;
+      } else {
+          obj.isLockedToOther = false;
+      }
+
       return {
-        ...r.toObject(),
+        ...obj,
         isTampered: r.blockchainHash && r.txHash && r.txHash !== 'Blockchain pending'
           ? recalculatedHash !== r.blockchainHash
           : false
@@ -244,14 +260,20 @@ router.get('/:reportId/verify', async (req, res) => {
 });
 
 // POST: Upvote a report (Community Validation)
-router.post('/:reportId/upvote', async (req, res) => {
+router.post('/:reportId/upvote', auth, async (req, res) => {
   try {
-    const report = await Report.findOneAndUpdate(
-      { reportId: req.params.reportId },
-      { $inc: { upvotes: 1 } },
-      { new: true }
-    );
+    const report = await Report.findOne({ reportId: req.params.reportId });
     if (!report) return res.status(404).json({ error: 'Report not found' });
+    
+    if (report.upvotedBy && report.upvotedBy.includes(req.user.id)) {
+      return res.status(400).json({ error: 'Already upvoted' });
+    }
+
+    report.upvotes += 1;
+    if (!report.upvotedBy) report.upvotedBy = [];
+    report.upvotedBy.push(req.user.id);
+    await report.save();
+
     res.json({ message: 'Upvote successful', upvotes: report.upvotes });
   } catch (err) {
     console.error(err);
@@ -260,14 +282,20 @@ router.post('/:reportId/upvote', async (req, res) => {
 });
 
 // POST: Dispute/Flag a report (Community Validation)
-router.post('/:reportId/dispute', async (req, res) => {
+router.post('/:reportId/dispute', auth, async (req, res) => {
   try {
-    const report = await Report.findOneAndUpdate(
-      { reportId: req.params.reportId },
-      { $inc: { disputes: 1 } },
-      { new: true }
-    );
+    const report = await Report.findOne({ reportId: req.params.reportId });
     if (!report) return res.status(404).json({ error: 'Report not found' });
+    
+    if (report.disputedBy && report.disputedBy.includes(req.user.id)) {
+      return res.status(400).json({ error: 'Already disputed' });
+    }
+
+    report.disputes += 1;
+    if (!report.disputedBy) report.disputedBy = [];
+    report.disputedBy.push(req.user.id);
+    await report.save();
+
     res.json({ message: 'Dispute registered', disputes: report.disputes });
   } catch (err) {
     console.error(err);
@@ -284,7 +312,7 @@ router.put('/:reportId/status', auth, async (req, res) => {
     const { status } = req.body;
 
     // Validate status value (Title Case, consistent across app)
-    const allowedStatuses = ['Pending', 'In Progress', 'Resolved', 'Rejected'];
+    const allowedStatuses = ['Pending Review', 'Need More Evidence', 'Under Investigation', 'Resolved', 'Rejected'];
     if (!status || !allowedStatuses.includes(status)) {
       return res.status(400).json({
         error: `Invalid status. Must be one of: ${allowedStatuses.join(', ')}`
@@ -312,6 +340,72 @@ router.put('/:reportId/status', auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error updating status' });
+  }
+});
+
+// POST: Send a private message
+router.post('/:reportId/messages', auth, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ error: 'Message text is required' });
+
+    const report = await Report.findOne({ reportId: req.params.reportId });
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+
+    if (req.user.role === 'user') {
+        if (!report.userId || report.userId.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'Not authorized to reply to this report' });
+        }
+    }
+
+    if (req.user.role === 'investigator') {
+        if (!report.assignedInvestigator) {
+            report.assignedInvestigator = req.user.id;
+        } else if (report.assignedInvestigator.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'This report is handled by another investigator' });
+        }
+    }
+
+    const newMessage = {
+        senderId: req.user.id,
+        senderRole: req.user.role,
+        text: text.trim(),
+        createdAt: new Date()
+    };
+
+    if (!report.messages) report.messages = [];
+    report.messages.push(newMessage);
+    
+    await report.save();
+
+    res.status(201).json({ message: 'Message sent successfully', newMessage, assignedInvestigator: report.assignedInvestigator });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error sending message' });
+  }
+});
+
+// GET: Fetch private messages for a report
+router.get('/:reportId/messages', auth, async (req, res) => {
+  try {
+    const report = await Report.findOne({ reportId: req.params.reportId });
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+
+    if (req.user.role === 'user') {
+        if (!report.userId || report.userId.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'Not authorized to view these messages' });
+        }
+    }
+    if (req.user.role === 'investigator') {
+        if (report.assignedInvestigator && report.assignedInvestigator.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'This report is handled by another investigator' });
+        }
+    }
+
+    res.json({ messages: report.messages || [], assignedInvestigator: report.assignedInvestigator });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching messages' });
   }
 });
 

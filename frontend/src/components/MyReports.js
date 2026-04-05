@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { getMyReports } from '../utils/api';
 
 const MyReports = () => {
+  const getStatusClass = (status) => {
+    if (!status) return '';
+    const s = status.toLowerCase();
+    if (s.includes('pending')) return 'pending';
+    if (s.includes('resolved') || s === 'closed') return 'resolved';
+    if (s.includes('progress') || s.includes('investigation') || s.includes('evidence')) return 'in-progress';
+    if (s.includes('rejected')) return 'rejected';
+    return '';
+  };
+
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +46,7 @@ const MyReports = () => {
             <div key={report.reportId} className="report-card">
               <div className="report-header">
                 <h3>Report ID: {report.reportId}</h3>
-                <span className={`status-badge status-${report.status.toLowerCase().replace(' ', '-')}`}>
+                <span className={`status-badge ${getStatusClass(report.status)}`}>
                   {report.status}
                 </span>
               </div>

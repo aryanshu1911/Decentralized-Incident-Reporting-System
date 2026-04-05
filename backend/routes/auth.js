@@ -7,7 +7,7 @@ const User = require('../models/User');
 // POST: /auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role, specializations } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ msg: 'Please enter all fields' });
@@ -22,7 +22,8 @@ router.post('/register', async (req, res) => {
     user = new User({
       username,
       password,
-      role: role || 'user'
+      role: role || 'user',
+      specializations: role === 'investigator' && specializations ? specializations : []
     });
 
     // Hash password
@@ -36,7 +37,8 @@ router.post('/register', async (req, res) => {
       user: {
         id: user.id,
         role: user.role,
-        username: user.username
+        username: user.username,
+        specializations: user.specializations
       }
     };
 
@@ -51,7 +53,8 @@ router.post('/register', async (req, res) => {
           user: {
             id: user.id,
             username: user.username,
-            role: user.role
+            role: user.role,
+            specializations: user.specializations
           }
         });
       }
@@ -90,7 +93,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         role: user.role,
-        username: user.username
+        username: user.username,
+        specializations: user.specializations
       }
     };
 
@@ -105,7 +109,8 @@ router.post('/login', async (req, res) => {
           user: {
             id: user.id,
             username: user.username,
-            role: user.role
+            role: user.role,
+            specializations: user.specializations
           }
         });
       }

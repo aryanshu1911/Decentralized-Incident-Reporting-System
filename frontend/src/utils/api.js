@@ -77,12 +77,32 @@ export const verifyReportOnChain = async (reportId) => {
 
 // Upvote a report
 export const upvoteReport = async (reportId) => {
-  const response = await axios.post(`${API_URL}/reports/${reportId}/upvote`);
+  const response = await axios.post(`${API_URL}/reports/${reportId}/upvote`, {}, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };
 
 // Dispute/Flag a report
 export const disputeReport = async (reportId) => {
-  const response = await axios.post(`${API_URL}/reports/${reportId}/dispute`);
+  const response = await axios.post(`${API_URL}/reports/${reportId}/dispute`, {}, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+// Get report messages
+export const getReportMessages = async (reportId) => {
+  const response = await axios.get(`${API_URL}/reports/${reportId}/messages`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+// Send a report message
+export const sendReportMessage = async (reportId, text) => {
+  const response = await axios.post(`${API_URL}/reports/${reportId}/messages`, { text }, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };

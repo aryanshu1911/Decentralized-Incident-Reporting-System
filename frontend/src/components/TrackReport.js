@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { getReportById, verifyReportOnChain } from '../utils/api';
+import React, { useState } from 'react';
+import { getReportById, verifyReportOnChain, getReportMessages, sendReportMessage } from '../utils/api';
 
 // Helper: compute a human-readable relative time string
 function timeAgo(dateString) {
@@ -19,6 +19,9 @@ export default function TrackReport() {
     const [verification, setVerification] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [messagesError, setMessagesError] = useState('');
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -37,6 +40,16 @@ export default function TrackReport() {
             // 2. Fetch the verification status from the Smart Contract!
             const verifyData = await verifyReportOnChain(reportId);
             setVerification(verifyData);
+
+            // 3. Fetch private messages (if authorized)
+            try {
+                const msgData = await getReportMessages(reportId);
+                setMessages(msgData.messages || []);
+                setMessagesError('');
+            } catch (msgErr) {
+                setMessagesError('Not authorized to view messages or none exist.');
+            }
+
         } catch (err) {
             console.error(err);
             if (err.response?.status === 404) {
@@ -49,13 +62,25 @@ export default function TrackReport() {
         }
     };
 
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (!newMessage.trim()) return;
+        try {
+            const data = await sendReportMessage(reportId, newMessage);
+            setMessages(prev => [...prev, data.newMessage]);
+            setNewMessage('');
+        } catch (err) {
+            alert(err.response?.data?.error || 'Failed to send message');
+        }
+    };
+
     const getStatusClass = (status) => {
         if (!status) return '';
         const s = status.toLowerCase();
-        if (s === 'pending') return 'pending';
-        if (s === 'resolved') return 'resolved';
-        if (s === 'in progress' || s === 'in-progress') return 'in-progress';
-        if (s === 'rejected') return 'rejected';
+        if (s.includes('pending')) return 'pending';
+        if (s.includes('resolved') || s === 'closed') return 'resolved';
+        if (s.includes('progress') || s.includes('investigation') || s.includes('evidence')) return 'in-progress';
+        if (s.includes('rejected')) return 'rejected';
         return '';
     };
 
@@ -212,6 +237,41 @@ export default function TrackReport() {
                                     alt="Report evidence"
                                     style={{ maxWidth: '100%', borderRadius: '8px' }}
                                 />
+                            </div>
+                        )}
+
+                        {/* Private Communication Thread */}
+                        {!messagesError && (
+                            <div className="communication-thread" style={{ marginTop: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                                <h3>Private Communication</h3>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                                    This thread is strictly between you and the assigned investigator.
+                                </p>
+                                <div className="messages-list" style={{ maxHeight: '300px', overflowY: 'auto', margin: '16px 0', background: 'var(--bg-card-hover)', padding: '10px', borderRadius: '8px' }}>
+                                    {messages.length === 0 ? <p>No messages yet.</p> : messages.map((m, i) => (
+                                        <div key={i} style={{ marginBottom: '10px', textAlign: m.senderRole === 'user' ? 'right' : 'left' }}>
+                                            <div style={{ display: 'inline-block', maxWidth: '80%', padding: '8px 12px', borderRadius: '12px', background: m.senderRole === 'user' ? 'var(--primary-dark)' : 'var(--bg-input)' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                                                    {m.senderRole === 'user' ? 'You' : 'Investigator'}
+                                                </span>
+                                                {m.text}
+                                                <span style={{ fontSize: '0.65rem', display: 'block', marginTop: '4px', opacity: 0.7 }}>
+                                                    {new Date(m.createdAt).toLocaleTimeString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '8px' }}>
+                                    <input 
+                                        type="text" 
+                                        value={newMessage} 
+                                        onChange={(e) => setNewMessage(e.target.value)} 
+                                        placeholder="Type a reply to the investigator..." 
+                                        style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text)' }} 
+                                    />
+                                    <button type="submit" className="btn-submit" style={{ margin: 0, padding: '10px 20px' }}>Send</button>
+                                </form>
                             </div>
                         )}
                     </div>

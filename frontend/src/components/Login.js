@@ -7,12 +7,23 @@ const Login = ({ onLoginSuccess }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    role: 'user'
+    role: 'user',
+    specializations: []
   });
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSpecializationChange = (e) => {
+    const value = e.target.value;
+    setFormData(prev => {
+      const sp = prev.specializations.includes(value)
+        ? prev.specializations.filter(s => s !== value)
+        : [...prev.specializations, value];
+      return { ...prev, specializations: sp };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -70,6 +81,26 @@ const Login = ({ onLoginSuccess }) => {
                 <option value="user">User / Whistleblower</option>
                 <option value="investigator">Investigator / Admin</option>
               </select>
+            </div>
+          )}
+
+          {isRegister && formData.role === 'investigator' && (
+            <div className="form-group">
+              <label>Specializations (Select at least one):</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '10px' }}>
+                {['Theft', 'Assault', 'Vandalism', 'Fraud', 'Harassment', 'Drug Activity', 'Traffic Violation', 'Public Disturbance', 'Cybercrime', 'Missing Person', 'Other'].map(cat => (
+                  <label key={cat} style={{ display: 'inline-flex', alignItems: 'center', fontWeight: 'normal', fontSize: '0.9rem' }}>
+                    <input
+                      type="checkbox"
+                      value={cat}
+                      checked={formData.specializations.includes(cat)}
+                      onChange={handleSpecializationChange}
+                      style={{ marginRight: '8px', width: 'auto' }}
+                    />
+                    {cat}
+                  </label>
+                ))}
+              </div>
             </div>
           )}
           

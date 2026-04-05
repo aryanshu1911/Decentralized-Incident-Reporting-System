@@ -17,10 +17,10 @@ function timeAgo(dateString) {
 function getStatusClass(status) {
     if (!status) return '';
     const s = status.toLowerCase();
-    if (s === 'pending') return 'pending';
-    if (s === 'resolved') return 'resolved';
-    if (s === 'in progress' || s === 'in-progress') return 'in-progress';
-    if (s === 'rejected') return 'rejected';
+    if (s.includes('pending')) return 'pending';
+    if (s.includes('resolved') || s === 'closed') return 'resolved';
+    if (s.includes('progress') || s.includes('investigation') || s.includes('evidence')) return 'in-progress';
+    if (s.includes('rejected')) return 'rejected';
     return '';
 }
 
@@ -52,6 +52,12 @@ export default function PublicReports() {
     };
 
     const handleVote = async (reportId, type) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login to vote before voting on reports');
+            return;
+        }
+
         if (votingIds.has(reportId) || votedReports.has(reportId)) return;
 
         setVotingIds(prev => new Set(prev).add(reportId));
@@ -68,7 +74,11 @@ export default function PublicReports() {
             setVotedReports(prev => new Set(prev).add(reportId));
         } catch (err) {
             console.error("Failed to submit vote:", err);
-            alert("Failed to submit vote. Please try again.");
+            const msg = err.response?.data?.error || "Failed to submit vote. Please try again.";
+            alert(msg);
+            if (msg.toLowerCase().includes("already")) {
+                setVotedReports(prev => new Set(prev).add(reportId)); // Disable locally
+            }
         } finally {
             setVotingIds(prev => {
                 const newSet = new Set(prev);
