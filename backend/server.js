@@ -2,14 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 const { syncReportsToBlockchain } = require('./utils/syncReports');
 
 app.use(cors());
 app.use(express.json());
 
 const reportRoutes = require('./routes/reports');
+const authRoutes = require('./routes/auth');
 app.use('/reports', reportRoutes);
+app.use('/auth', authRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {

@@ -839,3 +839,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   object-fit: contain;
 }
+
+.header-content { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
+.user-info { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 20px; }
+.logout-btn { background: #e74c3c; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; transition: background 0.3s; }
+.logout-btn:hover { background: #c0392b; }

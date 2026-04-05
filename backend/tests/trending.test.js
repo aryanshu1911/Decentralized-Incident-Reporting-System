@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const Report = require('../models/report');
 

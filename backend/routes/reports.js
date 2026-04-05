@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { uploadFileToPinata } = require('../utils/pinata');
 const { storeHashOnChain, updateStatusOnChain, verifyHashOnChain } = require('../utils/blockchain');
+const auth = require('../middleware/auth');
 
 // Multer setup: store temp files in 'uploads/' with 10MB limit
 const upload = multer({
@@ -23,7 +24,7 @@ const upload = multer({
 });
 
 // POST: submit a report
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', auth, upload.single('file'), async (req, res) => {
   try {
     const { category, description, locationText, longitude, latitude } = req.body;
     const file = req.file;
@@ -58,6 +59,7 @@ router.post('/', upload.single('file'), async (req, res) => {
       imageCID,
       blockchainHash,
       status: 'Pending',
+      userId: req.user.id,
     };
 
     // Include GeoJSON location only if valid coordinates are provided
@@ -125,9 +127,39 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET: all reports with full details (admin/internal use)
-router.get('/all', async (req, res) => {
+// GET: my reports
+router.get('/my-reports', auth, async (req, res) => {
   try {
+    const reports = await Report.find({ userId: req.user.id }).sort({ createdAt: -1 });
+
+    const processedReports = reports.map(r => {
+      const imgCID = r.imageCID || "NO_IMAGE";
+      const recalculatedHash = crypto
+        .createHash('sha256')
+        .update(r.reportId + r.description + r.locationText + r.category + imgCID)
+        .digest('hex');
+
+      return {
+        ...r.toObject(),
+        isTampered: r.blockchainHash && r.txHash && r.txHash !== 'Blockchain pending'
+          ? recalculatedHash !== r.blockchainHash
+          : false
+      };
+    });
+
+    res.json(processedReports);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching my reports' });
+  }
+});
+
+// GET: all reports with full details (admin/internal use)
+router.get('/all', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'investigator') {
+      return res.status(403).json({ error: 'Not authorized as investigator' });
+    }
     const reports = await Report.find().sort({ createdAt: -1 });
 
     const processedReports = reports.map(r => {
@@ -244,8 +276,11 @@ router.post('/:reportId/dispute', async (req, res) => {
 });
 
 // PUT: update status via reportId (Admin Only)
-router.put('/:reportId/status', async (req, res) => {
+router.put('/:reportId/status', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'investigator') {
+      return res.status(403).json({ error: 'Not authorized as investigator' });
+    }
     const { status } = req.body;
 
     // Validate status value (Title Case, consistent across app)

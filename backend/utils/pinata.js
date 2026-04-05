@@ -2,7 +2,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
-require('dotenv').config({ path: '../../.env' });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_API_SECRET = process.env.PINATA_API_SECRET;

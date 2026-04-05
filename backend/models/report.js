@@ -17,6 +17,7 @@ const reportSchema = new mongoose.Schema({
   disputes: { type: Number, default: 0 },
   commentsCount: { type: Number, default: 0 },
   severity: { type: Number, default: 1 },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });
 

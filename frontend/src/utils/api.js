@@ -1,12 +1,33 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/reports'; // Backend API URL
+const API_URL = 'http://localhost:5000'; // Backend Base URL
+
+// Add token to headers if available
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+};
+
+// Auth APIs
+export const registerUser = async (data) => {
+  const response = await axios.post(`${API_URL}/auth/register`, data);
+  return response.data;
+};
+
+export const loginUser = async (data) => {
+  const response = await axios.post(`${API_URL}/auth/login`, data);
+  return response.data;
+};
 
 // Submit report with image
 export const submitReport = async (data) => {
-  const response = await axios.post(API_URL, data, {
+  const response = await axios.post(`${API_URL}/reports`, data, {
     headers: {
-      'Content-Type': 'multipart/form-data', // Necessary for file upload
+      'Content-Type': 'multipart/form-data',
+      ...getAuthHeaders(),
     },
   });
   return response.data;
@@ -14,42 +35,54 @@ export const submitReport = async (data) => {
 
 // Get all reports (public summary-only fields)
 export const getReports = async () => {
-  const response = await axios.get(API_URL);
+  const response = await axios.get(`${API_URL}/reports`);
+  return response.data;
+};
+
+// Get personal reports
+export const getMyReports = async () => {
+  const response = await axios.get(`${API_URL}/reports/my-reports`, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };
 
 // Get all reports with full details (admin/investigator use)
 export const getAllReports = async () => {
-  const response = await axios.get(`${API_URL}/all`);
+  const response = await axios.get(`${API_URL}/reports/all`, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };
 
 // Update report status (admin use)
 export const updateReportStatus = async (reportId, status) => {
-  const response = await axios.put(`${API_URL}/${reportId}/status`, { status });
+  const response = await axios.put(`${API_URL}/reports/${reportId}/status`, { status }, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
 };
 
 // Get a single report by ID
 export const getReportById = async (reportId) => {
-  const response = await axios.get(`${API_URL}/${reportId}`);
+  const response = await axios.get(`${API_URL}/reports/${reportId}`);
   return response.data;
 };
 
 // Verify a report on the blockchain
 export const verifyReportOnChain = async (reportId) => {
-  const response = await axios.get(`${API_URL}/${reportId}/verify`);
+  const response = await axios.get(`${API_URL}/reports/${reportId}/verify`);
   return response.data;
 };
 
 // Upvote a report
 export const upvoteReport = async (reportId) => {
-  const response = await axios.post(`${API_URL}/${reportId}/upvote`);
+  const response = await axios.post(`${API_URL}/reports/${reportId}/upvote`);
   return response.data;
 };
 
 // Dispute/Flag a report
 export const disputeReport = async (reportId) => {
-  const response = await axios.post(`${API_URL}/${reportId}/dispute`);
+  const response = await axios.post(`${API_URL}/reports/${reportId}/dispute`);
   return response.data;
 };
