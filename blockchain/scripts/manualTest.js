@@ -19,16 +19,17 @@ async function main() {
     console.log();
 
     // 1. Store a hash (as user1)
-    const hash = ethers.keccak256(ethers.toUtf8Bytes("RPT001-description-location-category-QmCID123"));
-    console.log("1. Storing hash for RPT001 (as user1)...");
-    const tx1 = await contract.connect(user1).storeHash("RPT001", hash);
+    const reportHash = "RPT001-description-location-category-QmCID123";
+    const reportId = 123456789;
+    console.log(`1. Storing hash for ${reportId} (as user1)...`);
+    const tx1 = await contract.connect(user1).storeReportHash(reportId, reportHash);
     await tx1.wait();
     console.log("   PASS - Hash stored! Tx: " + tx1.hash);
     console.log();
 
     // 2. Get report details
-    console.log("2. Getting report details for RPT001...");
-    const [storedHash, reporter, timestamp, status] = await contract.getReport("RPT001");
+    console.log(`2. Getting report details for ${reportId}...`);
+    const [storedHash, reporter, timestamp, status] = await contract.getReport(reportId);
     console.log("   Hash     : " + storedHash);
     console.log("   Reporter : " + reporter);
     console.log("   Time     : " + new Date(Number(timestamp) * 1000).toLocaleString());
@@ -37,35 +38,35 @@ async function main() {
 
     // 3. Verify hash (correct)
     console.log("3. Verifying with CORRECT hash...");
-    const isValid = await contract.verifyHash("RPT001", hash);
+    const isValid = await contract.verifyHash(reportId, reportHash);
     console.log("   Result: " + (isValid ? "PASS - hash matches!" : "FAIL"));
     console.log();
 
     // 4. Verify hash (tampered)
     console.log("4. Verifying with TAMPERED hash...");
-    const fakeHash = ethers.keccak256(ethers.toUtf8Bytes("tampered-data"));
-    const isFake = await contract.verifyHash("RPT001", fakeHash);
+    const fakeHash = "tampered-data";
+    const isFake = await contract.verifyHash(reportId, fakeHash);
     console.log("   Result: " + (!isFake ? "PASS - tamper detected!" : "FAIL"));
     console.log();
 
     // 5. Update status (as admin)
-    console.log("5. Admin updating status to 'Under Review'...");
-    const tx2 = await contract.updateStatus("RPT001", "Under Review");
+    console.log(`5. Admin updating status for ${reportId} to 'Under Review'...`);
+    const tx2 = await contract.updateStatus(reportId, "Under Review");
     await tx2.wait();
     console.log("   PASS - Status updated!");
     console.log();
 
     // 6. Check updated report
     console.log("6. Checking updated status...");
-    const [, , , newStatus] = await contract.getReport("RPT001");
+    const [, , , newStatus] = await contract.getReport(reportId);
     console.log("   Status: " + newStatus);
     console.log("   Result: " + (newStatus === "Under Review" ? "PASS" : "FAIL"));
     console.log();
 
     // 7. Duplicate store (should fail)
-    console.log("7. Duplicate store RPT001 (should revert)...");
+    console.log(`7. Duplicate store ${reportId} (should revert)...`);
     try {
-        await contract.storeHash("RPT001", hash);
+        await contract.storeReportHash(reportId, reportHash);
         console.log("   FAIL - did not revert!");
     } catch (err) {
         console.log("   PASS - reverted: " + (err.reason || "Hash already stored"));
@@ -73,9 +74,9 @@ async function main() {
     console.log();
 
     // 8. Non-admin updateStatus (should fail)
-    console.log("8. Non-admin updateStatus (should revert)...");
+    console.log(`8. Non-admin updateStatus for ${reportId} (should revert)...`);
     try {
-        await contract.connect(user1).updateStatus("RPT001", "Resolved");
+        await contract.connect(user1).updateStatus(reportId, "Resolved");
         console.log("   FAIL - did not revert!");
     } catch (err) {
         console.log("   PASS - reverted: " + (err.reason || "Only admin can call this"));

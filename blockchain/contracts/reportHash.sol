@@ -6,18 +6,18 @@ contract ReportHash {
     address public admin;
 
     struct Report {
-        bytes32 hash;
+        string  reportHash;
         address reporter;
         uint256 timestamp;
         string  status;
         bool    exists;
     }
 
-    mapping(string => Report) private reports;
+    mapping(uint256 => Report) private reports;
 
     // ── Events ─────────────────────────────────────────────
-    event HashStored(string reportId, bytes32 hash, address reporter);
-    event StatusUpdated(string reportId, string status);
+    event HashStored(uint256 reportId, string reportHash, address reporter);
+    event StatusUpdated(uint256 reportId, string status);
 
     // ── Modifiers ──────────────────────────────────────────
     modifier onlyAdmin() {
@@ -33,26 +33,26 @@ contract ReportHash {
     // ── Core Functions ─────────────────────────────────────
 
     /// @notice Store a report hash on-chain
-    /// @param reportId  Unique ID of the report
-    /// @param hash      SHA-256 hash (cast to bytes32)
-    function storeHash(string memory reportId, bytes32 hash) public {
+    /// @param reportId    Unique ID of the report
+    /// @param reportHash  SHA-256 hash
+    function storeReportHash(uint256 reportId, string memory reportHash) public {
         require(!reports[reportId].exists, "Hash already stored for this report");
 
         reports[reportId] = Report({
-            hash: hash,
+            reportHash: reportHash,
             reporter: msg.sender,
             timestamp: block.timestamp,
             status: "Pending",
             exists: true
         });
 
-        emit HashStored(reportId, hash, msg.sender);
+        emit HashStored(reportId, reportHash, msg.sender);
     }
 
     /// @notice Admin-only: update the status of a report
     /// @param reportId  Unique ID of the report
     /// @param status    New status string (e.g. "Resolved", "Under Review")
-    function updateStatus(string memory reportId, string memory status) public onlyAdmin {
+    function updateStatus(uint256 reportId, string memory status) public onlyAdmin {
         require(reports[reportId].exists, "Report does not exist");
 
         reports[reportId].status = status;
@@ -61,24 +61,24 @@ contract ReportHash {
     }
 
     /// @notice Verify whether a hash matches the stored hash
-    /// @param reportId  Unique ID of the report
-    /// @param hash      Hash to verify against
-    /// @return          True if hashes match
-    function verifyHash(string memory reportId, bytes32 hash) public view returns (bool) {
+    /// @param reportId    Unique ID of the report
+    /// @param reportHash  Hash to verify against
+    /// @return            True if hashes match
+    function verifyHash(uint256 reportId, string memory reportHash) public view returns (bool) {
         require(reports[reportId].exists, "Report does not exist");
-        return reports[reportId].hash == hash;
+        return keccak256(abi.encodePacked(reports[reportId].reportHash)) == keccak256(abi.encodePacked(reportHash));
     }
 
     /// @notice Get full report data
     /// @param reportId  Unique ID of the report
-    function getReport(string memory reportId)
+    function getReport(uint256 reportId)
         public
         view
-        returns (bytes32 hash, address reporter, uint256 timestamp, string memory status)
+        returns (string memory reportHash, address reporter, uint256 timestamp, string memory status)
     {
         require(reports[reportId].exists, "Report does not exist");
 
         Report memory r = reports[reportId];
-        return (r.hash, r.reporter, r.timestamp, r.status);
+        return (r.reportHash, r.reporter, r.timestamp, r.status);
     }
-}
+}

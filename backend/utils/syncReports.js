@@ -21,7 +21,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') }
  */
 const reportExistsOnChain = async (reportId) => {
     try {
-        await contract.getReport(reportId);
+        await contract.getReport(BigInt(reportId));
         return true; // No revert = report exists
     } catch {
         return false; // Reverted = report doesn't exist
