@@ -74,50 +74,6 @@ This platform enables citizens to report incidents (crime, harassment, vandalism
 | **Web3 Library** | ethers.js |
 | **Hashing** | SHA-256 |
 
-## 📁 Project Structure
-
-```
-Anonymous Reporting Platform/
-├── backend/
-│   ├── server.js                     # Express setup + MongoDB connection
-│   ├── .env                          # Environment variables (not in repo)
-│   ├── models/
-│   │   └── report.js                 # Mongoose schema
-│   ├── routes/
-│   │   └── reports.js                # REST API
-│   ├── utils/
-│   │   ├── pinata.js                 # Pinata IPFS upload utility
-│   │   ├── blockchain.js             # Smart contract bridge (ethers.js)
-│   │   └── contractABI.json          # Contract ABI for ethers.js
-│   └── tests/
-│       └── trending.test.js          # Trending aggregation pipeline unit tests
-├── frontend/
-│   ├── public/
-│   │   └── index.html
-│   └── src/
-│       ├── App.js                    # Main app (4 tabs: Submit, Reports, Track, Investigator)
-│       ├── App.css                   # Global styling
-│       ├── index.js                  # React entry point
-│       ├── components/
-│       │   ├── reportForm.js         # Submit form (optional image, GPS opt-in, Report ID copy)
-│       │   ├── PublicReports.js      # Public read-only view (Recent/Trending, summary-only)
-│       │   ├── TrackReport.js        # Track-by-ID (full details, blockchain verification)
-│       │   ├── AdminDashboard.js     # Investigator login gate
-│       │   └── reportList.js         # Admin report list (status filter, blockchain verification)
-│       └── utils/
-│           └── api.js                # Axios API calls
-├── blockchain/
-│   ├── contracts/
-│   │   └── reportHash.sol            # Solidity smart contract
-│   ├── scripts/
-│   │   └── deploy.js                 # Contract deployment script
-│   ├── test/
-│   │   └── reportHash.test.js        # Smart contract unit tests (7 tests)
-│   ├── hardhat.config.js             # Hardhat configuration
-│   └── package.json                  # Blockchain dependencies
-└── .gitignore
-```
-
 ## ⚙️ Setup & Run
 
 ### Prerequisites
